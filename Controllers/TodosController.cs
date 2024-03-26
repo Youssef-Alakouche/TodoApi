@@ -1,4 +1,5 @@
 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TodoAPI.Data;
@@ -6,6 +7,7 @@ using TodoAPI.Models;
 
 namespace TodoAPI.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("/[Controller]")]
 public class TodosController : ControllerBase
