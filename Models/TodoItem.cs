@@ -12,5 +12,10 @@ public class TodoItem
     public string? Description { get; set; }
     public DateTime CreateAt { get; set; }
     public bool IsComplete { get; set; } = false;
+    
+    
+    // relationships
+    public long UserId { get; set; }
+    public User user { get; set; }
 }
 

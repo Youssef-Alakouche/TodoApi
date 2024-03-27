@@ -23,7 +23,8 @@ public class UserTokenGeneration
     {
         ClaimsIdentity identity = new([
             new Claim(ClaimTypes.Name, user.Name),
-            new Claim(ClaimTypes.Email, user.Email)
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Sid, user.Id.ToString())
         ]);
 
         SecurityKey key = new SymmetricSecurityKey(Encoding.UTF32.GetBytes(_jwtO.Key));

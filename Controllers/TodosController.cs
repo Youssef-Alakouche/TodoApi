@@ -1,4 +1,5 @@
 
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,19 +14,41 @@ namespace TodoAPI.Controllers;
 public class TodosController : ControllerBase
 {
     private readonly DataBaseContext _context;
+    // user id
+    private readonly int _id;
 
-    public TodosController(DataBaseContext context)
+    public TodosController(DataBaseContext context, IHttpContextAccessor contextAccessor)
     {
-        this._context = context;
+        HttpContext httpContext = contextAccessor.HttpContext!;
+        _context = context;
+        try
+        {
+            _id = int.Parse(httpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Sid)?.Value!);
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
     }
     
     // GET /todos
     [HttpGet]
     public ActionResult<IEnumerable<TodoItem>> TodoItems()
     {
-        var items = _context.TodoItems?.AsEnumerable() ?? Enumerable.Empty<TodoItem>();
+        // var items = _context.TodoItems?.AsEnumerable() ?? Enumerable.Empty<TodoItem>();
+        Console.WriteLine(_id);
+        var items = _context.Users.First(u => u.Id == _id);
+        _context.Entry(items).Collection(u => u.Todos!).Load();
+
+        if (items.Todos is not null)
+        {
+            foreach (var todo in items.Todos)
+            {
+                todo.user = null;
+            }
+        }
         
-        return Ok(items);
+        return Ok(items.Todos);
     }
     
     // GET /todos/{id}
@@ -33,12 +56,19 @@ public class TodosController : ControllerBase
     [HttpGet("{id}")]
     public ActionResult<TodoItem> TodoItem(long id)
     {
-        var item = _context.TodoItems?.FirstOrDefault(i => i.Id == id);
+        var user = _context.Users.First(u => u.Id == _id);
+
+        var item = _context.Entry(user).Collection(u => u.Todos!).Query().FirstOrDefault(t => t.Id == id);
+
+        
+        
+        // var item = _context.TodoItems?.FirstOrDefault(i => i.Id == id);
 
         if (item is null)
         {
             return BadRequest($"Todo with id {id} doesn't exist.");
         }
+        item.user = null;
         
         return Ok(item);
     }
@@ -48,11 +78,22 @@ public class TodosController : ControllerBase
     [Route("complete")]
     public ActionResult<IEnumerable<TodoItem>> TodoItemsComplete()
     {
-        var completeTodos = _context.TodoItems!.Where(i => i.IsComplete);
+        var user = _context.Users.First(u => u.Id == _id);
+
+        var completeTodos = _context.Entry(user).Collection(u => u.Todos!).Query().Where(i => i.IsComplete);
+        
+        // var completeTodos = _context.TodoItems!.Where(i => i.IsComplete);
 
         if (!completeTodos.Any())
             return BadRequest("No Todos has been completed!");
     
+        
+        foreach (var todo in completeTodos)
+        {
+            todo.user = null;
+        }
+        
+        
         return Ok(completeTodos);
     }
     
@@ -61,6 +102,9 @@ public class TodosController : ControllerBase
     public ActionResult<TodoItem> PostTodoItem(TodoDTO todoItem)
     {
         var newTodo = todoItem.ToTodoItem();
+
+        // assign TodoItem to the current user
+        newTodo.UserId = _id;
         
         // suppress deplicate Title
         if (_context.TodoItems!.Any(i => i.Title == newTodo.Title))
@@ -91,6 +135,8 @@ public class TodosController : ControllerBase
 
         todo = updatedTodo.ToTodoItem(todo);
 
+        // assign todoItem to the current user.
+        todo.UserId = _id;
         _context.Update(todo);
 
         _context.SaveChanges();

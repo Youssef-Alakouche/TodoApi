@@ -55,16 +55,18 @@ public class AuthController : ControllerBase
     [Route("register")]
     public ActionResult Regiser(User user)
     {
-        if (!UserCredValidator.IsValidPassword(user.Password))
-            return BadRequest("password is Empty");
+        #region raw user cred validation
+            if (!UserCredValidator.IsValidPassword(user.Password))
+                return BadRequest("password is Empty");
 
-        if (!UserCredValidator.IsValidName(user.Name))
-            return BadRequest("Name is Empty");
-        
-        if (!UserCredValidator.IsValidEmail(user.Email))
-        {
-            return BadRequest("Email is not Valid");
-        }
+            if (!UserCredValidator.IsValidName(user.Name))
+                return BadRequest("Name is Empty");
+            
+            if (!UserCredValidator.IsValidEmail(user.Email))
+            {
+                return BadRequest("Email is not Valid");
+            }
+        #endregion
         
         // check for deplicate email id db
         if (_context.Users.Any(u =>
