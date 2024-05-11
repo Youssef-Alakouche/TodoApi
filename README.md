@@ -19,7 +19,7 @@ authentication is implemented for securing the API endpoints.
     - IDE (Visual Studio or Visual Studio Code)
 
 2. **Clone the Repository:**
-   ```
+   ```bash
    git clone https://github.com/Youssef-Alakouche/TodoApi.git
    ```
 
