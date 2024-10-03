@@ -10,5 +10,12 @@ public class DataBaseContext : DbContext
     
     public DbSet<TodoItem>? TodoItems { get; set; }
     public DbSet<User> Users { get; set; }
+
+
+     protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // Seed data here 
+        // or create a separated extension method
+    }
 }
 
