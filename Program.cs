@@ -71,6 +71,8 @@ app.MapGet("/", (HttpContext context) =>
 app.MapControllers();
 
 
+// UPDATE
+// * use EF Core Fluent API to Seed Data
 // Init Seed DataBase
 var context = app.Services.CreateScope().ServiceProvider.GetRequiredService<DataBaseContext>();
 SeedData.Seed(context);
